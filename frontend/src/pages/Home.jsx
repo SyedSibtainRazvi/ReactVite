@@ -1,43 +1,55 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import MovieCard from "../components/MovieCard";
 import { getPopularMovies, searchMovies } from "../services/api";
 import "../css/Home.css";
+import { useQuery } from "@tanstack/react-query";
 
 function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [movies, setMovies] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // const [movies, setMovies] = useState([]);
+  // const [error, setError] = useState(null);
+  // const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadPopularMovies = async () => {
-      try {
-        const popularMovies = await getPopularMovies();
-        setMovies(popularMovies);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadPopularMovies();
-  }, []);
+  // useEffect(() => {
+  //   const loadPopularMovies = async () => {
+  //     try {
+  //       const popularMovies = await getPopularMovies();
+  //       setMovies(popularMovies);
+  //     } catch (err) {
+  //       setError(err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   loadPopularMovies();
+  // }, []);
+
+  const {
+    data: movies = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["movies", searchQuery],
+    queryFn: () =>
+      searchQuery.trim() ? searchMovies(searchQuery) : getPopularMovies(),
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+  });
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
-    if (loading) return;
+    // if (!searchQuery.trim()) return;
+    // if (loading) return;
 
-    setLoading(true);
-    try {
-      const searchResults = await searchMovies(searchQuery);
-      setMovies(searchResults);
-      setError(null);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
+    // setLoading(true);
+    // try {
+    //   const searchResults = await searchMovies(searchQuery);
+    //   setMovies(searchResults);
+    //   setError(null);
+    // } catch (err) {
+    //   setError(err);
+    // } finally {
+    //   setLoading(false);
+    // }
   };
   return (
     <div className="home">
@@ -55,7 +67,7 @@ function Home() {
       </form>
       {error && <div className="error-message">{error}</div>}
 
-      {loading ? (
+      {isLoading ? (
         <div className="loading">Loading...</div>
       ) : (
         <div className="movies-grid">
